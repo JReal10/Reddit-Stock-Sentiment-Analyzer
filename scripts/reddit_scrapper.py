@@ -31,7 +31,7 @@ def connect_to_db():
         port=config.DB_PORT
     )
 
-def scrape_subreddit(reddit, subreddit_name, post_limit=100):
+def scrape_subreddit(reddit, subreddit_name):
     """Scrape posts and comments from a subreddit"""
     subreddit = reddit.subreddit(subreddit_name)
     data = []
@@ -45,37 +45,34 @@ def scrape_subreddit(reddit, subreddit_name, post_limit=100):
                     'id': post.id + '_' +  comment.id ,
                     'created_utc': datetime.fromtimestamp(comment.created_utc),
                     'body': comment.body,
-                    'Score': comment.score,
-                    'Post_url':post.url,
+                    'score': comment.score,
+                    'post_url':post.url,
                 })
     
     return pd.DataFrame(data)
 
-#def save_to_database(df, db_path='data/reddit_data.db'):
+def save_to_database(df):
     """Save scraped data to PostgreSQL database"""
     conn = connect_to_db()
     cur = conn.cursor()
 
-    # Create table if it doesn't exist
+    #Create table if it doesn't exist
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reddit_comments (
             id TEXT PRIMARY KEY,
+            created_utc TIMESTAMP,
             body TEXT,
             score INTEGER,
-            created_utc TIMESTAMP,
-            post_title TEXT
+            post_url TEXT
         )
     """)
 
     # Insert data
     for _, row in df.iterrows():
         cur.execute("""
-            INSERT INTO reddit_comments (id, author, body, score, created_utc, subreddit, post_id, post_title)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (id) DO UPDATE SET
-                score = EXCLUDED.score
-        """, (row['id'], row['author'], row['body'], row['score'], row['created_utc'], 
-              row['subreddit'], row['post_id'], row['post_title']))
+            INSERT INTO reddit_comments (id, created_utc, body, score, post_url)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (row['id'], row['created_utc'], row['body'], row['score'], row['post_url']))
 
     conn.commit()
     cur.close()
@@ -89,9 +86,8 @@ def main():
     for subreddit in subreddits:
         print(f"Scraping r/{subreddit}...")
         df = scrape_subreddit(reddit, subreddit)
-        #save_to_database(df)
-        print(connect_to_db())
+        save_to_database(df)
         print(f"Saved {len(df)} comments from r/{subreddit}")
-
+    
 if __name__ == "__main__":
     main()
