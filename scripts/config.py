@@ -1,6 +1,6 @@
-SECRET_KEY = 'LyyFU_r17F6s1i0ajYI2dxoSi2dOtw'
-CLIENT_ID = 'SMi4R1E-3TeMoXqqwPNwUg'
-USER_NAME = 'Weary-Tooth7440'
+REDDIT_SECRET_KEY = 'LyyFU_r17F6s1i0ajYI2dxoSi2dOtw'
+REDDIT_CLIENT_ID = 'SMi4R1E-3TeMoXqqwPNwUg'
+REDDIT_USER_NAME = 'Weary-Tooth7440'
 
 # PostgreSQL connection details
 DB_NAME = 'RedditDB'

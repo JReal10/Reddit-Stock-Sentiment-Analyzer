@@ -11,7 +11,7 @@ import os
 # Add the project root directory to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(project_root)
-from config import config
+from . import config
 
 def connect_to_reddit():
     """Establish connection to Reddit API"""
