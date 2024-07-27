@@ -6,8 +6,6 @@ from psycopg2 import sql
 import sys
 import os
 
-import re
-
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
@@ -29,6 +27,11 @@ def connect_to_db():
         host=config.DB_HOST,
         port=config.DB_PORT
     )
+    
+def test():
+  text = "Hello"
+  
+  return str(text)
 
 def read_database():
     
