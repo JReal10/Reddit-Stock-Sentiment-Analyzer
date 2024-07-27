@@ -1,8 +1,8 @@
 # scripts/database_manager.py
 
 import psycopg2
-from psycopg2 import pool
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from psycopg2 import pool, sql
+from .config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 class DatabaseManager:
     def __init__(self):
@@ -46,7 +46,7 @@ class DatabaseManager:
         finally:
             self.connection_pool.putconn(conn)
             
-    def fetch_data(self, data):
+    def fetch_data(self):
         """
         Get processed Data from the database.
         
@@ -57,13 +57,14 @@ class DatabaseManager:
         df = []
         try:
             with conn.cursor() as cur:
-                for post in data:
-                    cur.execute("""
-                        SELECT * FROM reddit_posts
-                    """)
-                    result = cur.fetchall()
-                    for row in result:
-                      df.append(row[0])
+                 # Read df from the existing table in the database
+                read_query = sql.SQL("""
+                SELECT body FROM reddit_comments
+                """)
+                cur.execute(read_query)
+                result = cur.fetchall()
+                for row in result:
+                    df.append(row[0])
                 conn.commit()
         finally:
             self.connection_pool.putconn(conn)
@@ -71,6 +72,5 @@ class DatabaseManager:
         return df
 
     # You might add other database-related methods here, such as:
-    # - fetch_data
     # - update_data
     # - delete_data    

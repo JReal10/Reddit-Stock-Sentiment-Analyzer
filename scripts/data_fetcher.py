@@ -1,7 +1,7 @@
 # scripts/data_fetcher.py
 
 import praw
-from config import REDDIT_CLIENT_ID, REDDIT_SECRET_KEY, REDDIT_USER_NAME
+from .config import REDDIT_CLIENT_ID, REDDIT_SECRET_KEY, REDDIT_USER_NAME
 from datetime import datetime
 
 

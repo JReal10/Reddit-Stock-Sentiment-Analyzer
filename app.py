@@ -7,8 +7,9 @@ from scripts import DatabaseManager, fetch_reddit_data
 
 def main():
   
-  a = fetch_reddit_data("stocks")
-  test = st.write(a[0])
+  db_manager = DatabaseManager()
+  data = db_manager.fetch_data()
+  test = st.write(data[1])
   
   ticker = st.sidebar.text_input("Enter Ticker", "AAPL")
   start_date = st.sidebar.date_input("Start Date")
