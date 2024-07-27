@@ -1,62 +1,40 @@
 import pandas as pd
-import psycopg2
-from psycopg2 import sql
+from models import SentimentAnalyzer
 
-# scripts/reddit_scraper.py
-import sys
-import os
+def process_reddit_data(data):
+  """"
 
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer, PorterStemmer
-from nltk.tokenize import word_tokenize
+  Args:
+      data (list): Reddit data, including sentiment analysis
 
-# Add the project root directory to the Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-
-sys.path.append(project_root)  
-
-from . import config
-    
-def connect_to_db():
-    """Establish connection to PostgreSQL database"""
-    return psycopg2.connect(
-        dbname=config.DB_NAME,
-        user=config.DB_USER,
-        password=config.DB_PASSWORD,
-        host=config.DB_HOST,
-        port=config.DB_PORT
-    )
-    
-def test():
-  text = "Hello"
+  Returns:
+      list: Processed data with added sentiment analysis 
+  """
   
-  return str(text)
+  processed_data = []
+  for post in data:
+    sentiment, confidence = SentimentAnalyzer().predict(post['body'])
 
-def read_database():
-    
-    df = []
+    processed_post = {
+    'id': post['id'],
+    'body': post['body'],
+    'sentiment': sentiment,
+    'confidence': confidence,
+    'score': post['score'],
+    'created_utc': post['created_utc'],
+    'post_url':post['post_url'],
 
-    """Save scraped df to PostgreSQL database"""
-    conn = connect_to_db()
-    cur = conn.cursor()
+    }
+    processed_data.append(processed_post)
     
-    # Read df from the existing table in the database
-    read_query = sql.SQL("""
-      SELECT body FROM reddit_comments
-    """)
-    cur.execute(read_query)
-    result = cur.fetchall()
-    for row in result:
-      df.append(row[0])
-      
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return pd.DataFrame(df, columns=['body'])
+    return processed_data
 
-def CleanData(df):
+#import nltk
+#from nltk.corpus import stopwords
+#from nltk.stem import WordNetLemmatizer, PorterStemmer
+#from nltk.tokenize import word_tokenize
+
+#def CleanData(df):
   #Makes the text lowercase
   df.loc[:, 'body'] = df['body'].str.lower()
   
@@ -81,14 +59,12 @@ def CleanData(df):
   
   return df
 
-def LoadNLTK():
+#def LoadNLTK():
   nltk.download('stopwords')
   nltk.download('punkt')
   nltk.download('wordnet')
 
-
-
-def text_preprocessing(txt):
+#def text_preprocessing(txt):
   # Initialize the lemmatizer and stop words
   stop_words = set(stopwords.words('english'))
   lemmatizer = WordNetLemmatizer()
@@ -104,14 +80,3 @@ def text_preprocessing(txt):
 
   # Join the words back into a single string
   return ' '.join(lemmatized_words)
-
-  
-def main():
-  LoadNLTK()
-  df = read_database()
-  df = CleanData(df)
-  
-  #text_preprocessing(df['body'][0])
-   
-if __name__ == "__main__":
-    main()
