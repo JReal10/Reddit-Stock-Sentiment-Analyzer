@@ -15,7 +15,6 @@ import os
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(project_root)
 from config import config
-
     
 def connect_to_db():
     """Establish connection to PostgreSQL database"""
