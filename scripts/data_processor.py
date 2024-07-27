@@ -23,7 +23,6 @@ def process_reddit_data(data):
     'score': post['score'],
     'created_utc': post['created_utc'],
     'post_url':post['post_url'],
-
     }
     processed_data.append(processed_post)
     
