@@ -30,7 +30,7 @@ class DatabaseManager:
                         INSERT INTO reddit_posts 
                         (id, title, body, sentiment, confidence, score, num_comments, created_utc) 
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (id) DO UPDATE SET
+                        ON CONFLICT (id) DO NOTHING
                         title = EXCLUDED.title,
                         body = EXCLUDED.body,
                         sentiment = EXCLUDED.sentiment,
@@ -99,8 +99,8 @@ class DatabaseManager:
                 df = pd.DataFrame(result, columns=['created_utc', 'text', 'sentiment', 'sentiment_score'])
                 
                 # Filter for the stock symbol in Python
-                symbol_pattern = r'\b' + re.escape(symbol) + r'\b'
-                df = df[df['text'].str.contains(symbol_pattern, case=False, regex=True)]
+                #symbol_pattern = r'\b' + re.escape(symbol) + r'\b'
+                #df = df[df['text'].str.contains(symbol_pattern, case=False, regex=True)]
                 
                 return df
 

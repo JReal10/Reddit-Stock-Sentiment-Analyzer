@@ -18,15 +18,14 @@ db_manager = get_db_manager()
 def fetch_and_process_data(subreddit):
     reddit_data = fetch_reddit_data(subreddit)
     processed_data = process_reddit_data(reddit_data)
-    #Changed
-    #db_manager.save_data(processed_data, avoid_duplicates=True)
+    db_manager.save_data(processed_data)
 
-def scheduled_data_fetch():
+#def scheduled_data_fetch():
     fetch_and_process_data('stocks')
     fetch_and_process_data('wallstreetbets')
     print(f"Data fetched at {datetime.now()}")
 
-def run_schedule():
+#def run_schedule():
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -59,14 +58,20 @@ def main():
   
     # Display last update time
     #last_update = db_manager.get_last_update_time()
-    #st.sidebar.write(f"Last data update: {last_update}")
+    st.sidebar.write(f"Last data update: 7 days ago")
+    update_button = st.sidebar.button("Update Data")
 
     # User input for stock symbol
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
+    st.text(db_manager.fetch_stock_data('AAPL'))
     
-    print(db_manager.fetch_stock_data('MSFT'))
+    if update_button:
+        fetch_and_process_data('stocks')
+        fetch_and_process_data('wallstreetbets')
+        st.sidebar.write(f"Data fetched at {datetime.now()}")
+        
 
-    if stock_symbol:
+    """if stock_symbol:
         sentiment_data = get_stock_sentiment(stock_symbol)
         
         if sentiment_data:
@@ -101,15 +106,15 @@ def main():
                 st.text(f"Text: {row['text'][:200]}...")
                 st.markdown("---")
         else:
-            st.warning(f"No data found for {stock_symbol}. Check the stock symbol or wait for the next data update.")
+            st.warning(f"No data found for {stock_symbol}. Check the stock symbol or wait for the next data update.")"""
 
 if __name__ == "__main__":
     # Set up the scheduling
-    schedule.every(1).hours.do(scheduled_data_fetch)
+    #schedule.every(1).hours.do(scheduled_data_fetch)
     
     # Run the scheduled task in a separate thread
-    thread = threading.Thread(target=run_schedule)
-    thread.start()
+    #thread = threading.Thread(target=run_schedule)
+    #thread.start()
     
     # Run the main Streamlit app
     main()
