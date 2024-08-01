@@ -60,16 +60,21 @@ def main():
     #last_update = db_manager.get_last_update_time()
     st.sidebar.write(f"Last data update: 7 days ago")
     update_button = st.sidebar.button("Update Data")
+    delete_button = st.sidebar.button("Delete Data")
+
 
     # User input for stock symbol
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
-    st.text(db_manager.fetch_stock_data('AAPL'))
+    st.text(db_manager.fetch_data())
     
     if update_button:
         fetch_and_process_data('stocks')
-        fetch_and_process_data('wallstreetbets')
+        #fetch_and_process_data('wallstreetbets')
         st.sidebar.write(f"Data fetched at {datetime.now()}")
         
+    if delete_button:
+        db_manager.delete_data()
+        st.sidebar.write(f"Data deleted at {datetime.now()}")
 
     """if stock_symbol:
         sentiment_data = get_stock_sentiment(stock_symbol)

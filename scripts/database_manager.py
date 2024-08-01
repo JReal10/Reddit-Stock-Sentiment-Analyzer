@@ -28,19 +28,18 @@ class DatabaseManager:
                 for post in data:
                     cur.execute("""
                         INSERT INTO reddit_posts 
-                        (id, title, body, sentiment, confidence, score, num_comments, created_utc) 
+                        (id, body, sentiment, confidence, score, created_utc, post_url) 
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (id) DO NOTHING
-                        title = EXCLUDED.title,
                         body = EXCLUDED.body,
                         sentiment = EXCLUDED.sentiment,
                         confidence = EXCLUDED.confidence,
                         score = EXCLUDED.score,
-                        num_comments = EXCLUDED.num_comments
+                        post_url = EXCLUDED.post_url,
                     """, (
-                        post['id'], post['title'], post['body'], 
+                        post['id'], post['body'], 
                         post['sentiment'], post['confidence'], 
-                        post['score'], post['num_comments'], post['created_utc']
+                        post['score'], post['created_utc'], post['post_url']
                     ))
                 conn.commit()
         finally:
@@ -117,7 +116,7 @@ class DatabaseManager:
         conn = self.connection_pool.getconn()
         try:
             with conn.cursor() as cur:
-                cur.execute("DELETE FROM reddit_posts")
+                cur.execute("""DELETE FROM reddit_comments""")
                 conn.commit()
         finally:
             self.connection_pool.putconn(conn)

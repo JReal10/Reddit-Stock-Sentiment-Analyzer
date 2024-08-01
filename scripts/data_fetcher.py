@@ -39,13 +39,3 @@ def fetch_reddit_data(subreddit):
                 })
     
     return posts
-
-
-def main():
-    subreddit = 'wallstreetbets'
-    posts = fetch_reddit_data(subreddit)
-    print(len(posts))
-    
-if __name__ == "__main__":
-    main()
-# You might add other functions related to data fetching here
