@@ -5,7 +5,6 @@ import schedule
 import time
 import threading
 from scripts import fetch_reddit_data, process_reddit_data, DatabaseManager
-#from utils import clean_text, calculate_sentiment_score
 from datetime import datetime, timedelta
 
 
@@ -18,17 +17,9 @@ db_manager = get_db_manager()
 def fetch_and_process_data(subreddit):
     reddit_data = fetch_reddit_data(subreddit)
     processed_data = process_reddit_data(reddit_data)
-    db_manager.save_data(processed_data)
-
-#def scheduled_data_fetch():
-    fetch_and_process_data('stocks')
-    fetch_and_process_data('wallstreetbets')
-    print(f"Data fetched at {datetime.now()}")
-
-#def run_schedule():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    
+    return processed_data
+   # db_manager.save_data(processed_data)
 
 def get_stock_sentiment(stock_symbol):
     # Fetch data for the specific stock from the database
@@ -57,7 +48,6 @@ def main():
     st.sidebar.title("Configuration")
   
     # Display last update time
-    #last_update = db_manager.get_last_update_time()
     st.sidebar.write(f"Last data update: 7 days ago")
     update_button = st.sidebar.button("Update Data")
     delete_button = st.sidebar.button("Delete Data")
@@ -65,13 +55,14 @@ def main():
 
     # User input for stock symbol
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
-    st.text(db_manager.fetch_data())
     
     if update_button:
-        fetch_and_process_data('stocks')
+        d = fetch_and_process_data('wallstreetbets')
+        redditdata = fetch_reddit_data('wallstreetbets')
+        a = process_reddit_data(redditdata)
+        st.text(a)
         #fetch_and_process_data('wallstreetbets')
-        st.sidebar.write(f"Data fetched at {datetime.now()}")
-        
+                
     if delete_button:
         db_manager.delete_data()
         st.sidebar.write(f"Data deleted at {datetime.now()}")
@@ -114,12 +105,4 @@ def main():
             st.warning(f"No data found for {stock_symbol}. Check the stock symbol or wait for the next data update.")"""
 
 if __name__ == "__main__":
-    # Set up the scheduling
-    #schedule.every(1).hours.do(scheduled_data_fetch)
-    
-    # Run the scheduled task in a separate thread
-    #thread = threading.Thread(target=run_schedule)
-    #thread.start()
-    
-    # Run the main Streamlit app
     main()

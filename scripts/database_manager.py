@@ -27,18 +27,16 @@ class DatabaseManager:
             with conn.cursor() as cur:
                 for post in data:
                     cur.execute("""
-                        INSERT INTO reddit_posts 
-                        (id, body, sentiment, confidence, score, created_utc, post_url) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (id) DO NOTHING
-                        body = EXCLUDED.body,
-                        sentiment = EXCLUDED.sentiment,
-                        confidence = EXCLUDED.confidence,
-                        score = EXCLUDED.score,
-                        post_url = EXCLUDED.post_url,
-                    """, (
+                INSERT INTO reddit_comments 
+                (id, body, sentiment, confidence, score, created_utc, post_url) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                body = EXCLUDED.body,
+                score = EXCLUDED.score,
+                created_utc = EXCLUDED.created_utc,
+                post_url = EXCLUDED.post_url
+            """, (
                         post['id'], post['body'], 
-                        post['sentiment'], post['confidence'], 
                         post['score'], post['created_utc'], post['post_url']
                     ))
                 conn.commit()
@@ -88,10 +86,8 @@ class DatabaseManager:
         try:
             with conn.cursor() as cur:
                 # Read data for the specified stock symbol
-                cur.execute("""
-                SELECT created_utc, body, sentiment, sentiment_score
-                FROM reddit_comments
-                """)
+                cur.execute("""SELECT created_utc, body, sentiment, sentiment_score FROM reddit_comments""")
+                
                 result = cur.fetchall()
                 
                 # Convert the result to a pandas DataFrame
