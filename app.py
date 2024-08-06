@@ -11,11 +11,14 @@ def get_db_manager():
     return DatabaseManager()
 
 db_manager = get_db_manager()
-        
-def get_stock_sentiment(stock_symbol):
-    # Fetch data for the specific stock from the database
-    df = db_manager.fetch_stock_data(stock_symbol)
-        
+
+def get_stock_symbol(stock_symbol, df):
+    symbol_pattern = r'\b' + re.escape(stock_symbol) + r'\b'
+    df = df[df['body'].str.contains(symbol_pattern, case=False, regex=True)]
+    
+    return df
+
+def get_stock_sentiment(df):        
     # Calculate overall sentiment score
     overall_score = df['sentiment_score'].mean()
     
@@ -34,7 +37,7 @@ def get_stock_sentiment(stock_symbol):
 
 def main():
     st.title("Reddit Stock Sentiment Analyzer")
-
+    
     # Sidebar for configuration
     st.sidebar.title("Configuration")
       
@@ -46,10 +49,12 @@ def main():
     
     # User input for stock symbol
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
+    
     df = pd.DataFrame(fetch_reddit_data("stocks"))
     
     if analyze_sentiment:
-        a = get_stock_sentiment(stock_symbol)
+        df = process_reddit_data(df)
+        st.write(df)
     
     if update_button:
         st.text(df)
@@ -59,8 +64,7 @@ def main():
         st.sidebar.write(f"Data deleted at {datetime.now()}")
         
     if stock_symbol:
-        symbol_pattern = r'\b' + re.escape(stock_symbol) + r'\b'
-        df = df[df['body'].str.contains(symbol_pattern, case=False, regex=True)]
+        df = get_stock_symbol(stock_symbol, df)
         st.write(df)
 
 if __name__ == "__main__":
