@@ -12,6 +12,7 @@ def process_reddit_data(data):
   """
   
   processed_data = []
+  
   for post in data:
     sentiment, confidence = SentimentAnalyzer().predict(post['body'])
 

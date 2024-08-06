@@ -1,0 +1,74 @@
+"""if stock_symbol:
+        sentiment_data = get_stock_sentiment(stock_symbol)
+        
+        if sentiment_data:
+            st.header(f"Sentiment Analysis for {stock_symbol}")
+            
+            # Display overall sentiment
+            st.metric("Overall Sentiment Score", f"{sentiment_data['overall_score']:.2f}")
+            st.write(f"The overall sentiment for {stock_symbol} is **{sentiment_data['sentiment']}**")
+
+            # Sentiment distribution pie chart
+            fig_pie = px.pie(
+                values=list(sentiment_data['sentiment_dist'].values()),
+                names=list(sentiment_data['sentiment_dist'].keys()),
+                title="Sentiment Distribution"
+            )
+            st.plotly_chart(fig_pie)
+
+            # Sentiment over time line chart
+            fig_line = px.line(
+                sentiment_data['data'],
+                x='created_utc',
+                y='sentiment_score',
+                title=f"{stock_symbol} Sentiment Over Time"
+            )
+            st.plotly_chart(fig_line)
+
+            # Display recent posts
+            st.subheader("Recent Posts")
+            for _, row in sentiment_data['data'].sort_values('created_utc', ascending=False).head(5).iterrows():
+                st.text(f"Date: {row['created_utc']}")
+                st.text(f"Sentiment: {row['sentiment']} (Score: {row['sentiment_score']:.2f})")
+                st.text(f"Text: {row['text'][:200]}...")
+                st.markdown("---")
+        else:
+            st.warning(f"No data found for {stock_symbol}. Check the stock symbol or wait for the next data update.")"""
+
+
+
+# scripts/sentiment_analyzer.py
+
+from transformers import pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+import torch
+import joblib
+
+class SentimentAnalyzer:
+    def __init__(self, use_transformer=False):
+        self.use_transformer = use_transformer
+        if use_transformer:
+            self.model = self._load_transformer_model()
+        else:
+            self.model = self._load_sklearn_model()
+
+    def _load_transformer_model(self):
+        device = 0 if torch.cuda.is_available() else -1
+        return pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=device)
+
+    def _load_sklearn_model(self):
+        # Assuming you have a pre-trained model saved
+        return joblib.load('models/sklearn_sentiment_model.joblib')
+
+    def analyze(self, text):
+        if self.use_transformer:
+            result = self.model(text)[0]
+            return result['label'], result['score']
+        else:
+            sentiment = self.model.predict([text])[0]
+            probability = max(self.model.predict_proba([text])[0])
+            return sentiment, probability
+
+# You might add methods for training and saving models here

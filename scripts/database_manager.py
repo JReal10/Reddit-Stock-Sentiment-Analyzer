@@ -25,21 +25,24 @@ class DatabaseManager:
         conn = self.connection_pool.getconn()
         try:
             with conn.cursor() as cur:
-                for post in data:
-                    cur.execute("""
-                INSERT INTO reddit_comments 
-                (id, body, sentiment, confidence, score, created_utc, post_url) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO UPDATE SET
-                body = EXCLUDED.body,
-                score = EXCLUDED.score,
-                created_utc = EXCLUDED.created_utc,
-                post_url = EXCLUDED.post_url
-            """, (
-                        post['id'], post['body'], 
-                        post['score'], post['created_utc'], post['post_url']
-                    ))
+                # Create a list of tuples from the data
+                values = [(d['body']) for d in data]
+                
+                # Generate the SQL query
+                insert_query = sql.SQL("""
+                INSERT INTO reddit_comments (body)
+                VALUES %s
+                """)
+                
+                # Execute the query with the list of tuples as the parameter
+                cur.execute(insert_query, (values,))
+                
+                # Commit the changes to the database
                 conn.commit()
+                
+        except psycopg2.Error as e:
+            print(f"Database error: {e}")
+            
         finally:
             self.connection_pool.putconn(conn)
             
@@ -55,7 +58,7 @@ class DatabaseManager:
             with conn.cursor() as cur:
                  # Read df from the existing table in the database
                 read_query = sql.SQL("""
-                SELECT body FROM reddit_comments
+                SELECT * FROM reddit_comments
                 """)
                 cur.execute(read_query)
                 result = cur.fetchall()
@@ -72,39 +75,6 @@ class DatabaseManager:
             self.connection_pool.putconn(conn)
             
     
-    def fetch_stock_data(self, symbol):
-        """
-        Get processed data for a specific stock symbol from the database.
-        
-        Args:
-        symbol (str): The stock symbol to fetch data for (e.g., 'AAPL', 'MSFT').
-
-        Returns:
-        pandas.DataFrame: A DataFrame containing the stock data.
-        """
-        conn = self.connection_pool.getconn()
-        try:
-            with conn.cursor() as cur:
-                # Read data for the specified stock symbol
-                cur.execute("""SELECT created_utc, body, sentiment, sentiment_score FROM reddit_comments""")
-                
-                result = cur.fetchall()
-                
-                # Convert the result to a pandas DataFrame
-                df = pd.DataFrame(result, columns=['created_utc', 'text', 'sentiment', 'sentiment_score'])
-                
-                # Filter for the stock symbol in Python
-                #symbol_pattern = r'\b' + re.escape(symbol) + r'\b'
-                #df = df[df['text'].str.contains(symbol_pattern, case=False, regex=True)]
-                
-                return df
-
-        except psycopg2.Error as e:
-            print(f"Database error: {e}")
-            return pd.DataFrame()  # Return an empty DataFrame in case of error
-        finally:
-            self.connection_pool.putconn(conn)
-    
     def delete_data(self):
         """
         Delete all data from the database.
@@ -116,8 +86,3 @@ class DatabaseManager:
                 conn.commit()
         finally:
             self.connection_pool.putconn(conn)
-            
-            
-    # You might add other database-related methods here, such as:
-    # - update_data
-    # - delete_data    

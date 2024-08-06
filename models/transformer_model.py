@@ -16,8 +16,7 @@ class SentimentAnalyzer:
   def predict(self, text):
     result = self.model(text)[0]
     return result['label'], result['score']
-
-
+  
 #def load_model(MODEL):
     """Load the model from Hugging Face model hub"""
     tokenizer = AutoTokenizer.from_pretrained(MODEL)

@@ -32,8 +32,8 @@ def fetch_reddit_data(subreddit):
             for comment in post.comments.list():
                 posts.append({
                     'id': post.id + '_' +  comment.id ,
-                    'created_utc': datetime.fromtimestamp(comment.created_utc),
                     'body': comment.body,
+                    'created_utc': datetime.fromtimestamp(comment.created_utc),
                     'score': comment.score,
                     'post_url':post.url,
                 })
