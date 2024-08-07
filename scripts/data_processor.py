@@ -34,31 +34,6 @@ def process_reddit_data(data):
 #from nltk.stem import WordNetLemmatizer, PorterStemmer
 #from nltk.tokenize import word_tokenize
 
-#def CleanData(df):
-  #Makes the text lowercase
-  df.loc[:, 'body'] = df['body'].str.lower()
-  
-  #Removes any special characters
-  df.loc[:, 'body'] = df['body'].str.replace(r'\W+', ' ')
-  
-  # Remove rows with missing values
-  df.loc[:, 'body'] = df[~df['body'].str.contains('\[removed\]|\[deleted\]', na=False, regex = True)]
-  
-  #Replacing the Paragraph Brake
-  df.loc[:, 'body'] = df['body'].str.replace('\n', ' ')
-  
-  #Removing the URL
-  df.loc[:, 'body'] = df['body'].str.replace(r'http\S+', '')
-  
-  # Removing other subreddit mentions  
-  df.loc[:, 'body'] = df['body'].str.replace(r'r/[\w]+', '')
-  
-  #Removing the User
-  df.loc[:, 'body'] = df['body'].str.replace(r'@\w+', '')
-  df = df.reset_index(drop=True)
-  
-  return df
-
 #def LoadNLTK():
   nltk.download('stopwords')
   nltk.download('punkt')

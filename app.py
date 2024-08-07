@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from models.transformer_model import SentimentAnalyzer
 from scripts import fetch_reddit_data, process_reddit_data, DatabaseManager
 from datetime import datetime, timedelta
 import re
@@ -51,10 +52,14 @@ def main():
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
     
     df = pd.DataFrame(fetch_reddit_data("stocks"))
-    
+    sdf = get_stock_symbol("MSFT", df)
+
     if analyze_sentiment:
-        df = process_reddit_data(df)
-        st.write(df)
+        texts = sdf['body'].tolist()
+        
+        for text in texts:
+            sentiment, confidence = SentimentAnalyzer().predict(text)
+            print(sentiment, confidence, text)
     
     if update_button:
         st.text(df)
@@ -64,8 +69,8 @@ def main():
         st.sidebar.write(f"Data deleted at {datetime.now()}")
         
     if stock_symbol:
-        df = get_stock_symbol(stock_symbol, df)
-        st.write(df)
+        sdf = get_stock_symbol(stock_symbol, df)
+        st.write(sdf)
 
 if __name__ == "__main__":
     main()
