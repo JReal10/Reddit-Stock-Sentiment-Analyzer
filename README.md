@@ -1,12 +1,5 @@
 # Reddit Stock Sentiment Analyzer
 
-![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/JReal10/Reddit-Stock-Sentiment-Analyzer?include_prereleases)
-![GitHub last commit](https://img.shields.io/github/last-commit/JReal10/Reddit-Stock-Sentiment-Analyzer)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/JReal10/Reddit-Stock-Sentiment-Analyzer)
-![GitHub](https://img.shields.io/github/license/JReal10/Reddit-Stock-Sentiment-Analyzer)
-![contributors](https://img.shields.io/github/contributors/JReal10/Reddit-Stock-Sentiment-Analyzer)
-![codesize](https://img.shields.io/github/languages/code-size/JReal10/Reddit-Stock-Sentiment-Analyzer)
-
 > A Streamlit-based application that analyzes the sentiment of Reddit comments related to a given stock.
 
 ## Project Overview
