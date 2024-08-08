@@ -19,8 +19,11 @@ sentiment_analyzer = get_sentiment_analyzer()
 
 def get_stock_symbol(stock_symbol, df):
     symbol_pattern = r'\b' + re.escape(stock_symbol) + r'\b'
-    return df[df['body'].str.contains(symbol_pattern, case=False, regex=True)]
-
+    symbol_df = df[df['body'].str.contains(symbol_pattern, case=False, regex=True)]
+    symbol_df = symbol_df.reset_index(drop=True)
+    
+    return symbol_df
+ 
 def analyze_sentiment(texts):
     sentiments = []
     scores = []
@@ -43,7 +46,7 @@ def plot_sentiment_distribution(sentiment_df):
 def plot_sentiment_over_time(df):
     df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
     df = df.sort_values('created_utc')
-    fig = px.line(df, x='created_utc', y='sentiment', title='Sentiment Over Time')
+    fig = px.line(df, x='created_utc', y='sentiment_score', title='Sentiment Over Time')
     return fig
 
 def main():
@@ -53,9 +56,9 @@ def main():
     
     if stock_symbol:
         with st.spinner("Fetching data..."):
-            df = pd.DataFrame(fetch_reddit_data("stocks"))
+            stocks_df = pd.DataFrame(fetch_reddit_data("stocks"))
             wallstreetbets_df = pd.DataFrame(fetch_reddit_data("wallstreetbets"))
-            #df = pd.concat([stocks_df, wallstreetbets_df])
+            df = pd.concat([stocks_df, wallstreetbets_df])
             symbol_df = get_stock_symbol(stock_symbol, df)
         
         if symbol_df.empty:
@@ -69,7 +72,7 @@ def main():
                 print(texts)
                 sentiment_df = analyze_sentiment(texts)
                 symbol_df['sentiment'] = sentiment_df['sentiment']
-                symbol_df['sentiment'] = symbol_df['sentiment'].map({'positive': 1, 'neutral': 0, 'negative': -1})
+                symbol_df['sentiment_score'] = sentiment_df['sentiment'].map({'positive': 1, 'neutral': 0, 'negative': -1})
             
             st.subheader("Sentiment Analysis Results")
             col1, col2 = st.columns(2)
@@ -81,7 +84,7 @@ def main():
                 st.plotly_chart(plot_sentiment_over_time(symbol_df))
             
             st.subheader("Key Statistics")
-            total_comments = len(symbol_df)
+            total_comments = len(sentiment_df)
             positive_ratio = (symbol_df['sentiment'] == 'positive').mean()
             negative_ratio = (symbol_df['sentiment'] == 'negative').mean()
             neutral_ratio = (symbol_df['sentiment'] == 'neutral').mean()
