@@ -50,7 +50,7 @@ def plot_sentiment_over_time(df):
     return fig
 
 def main():
-    st.title("Reddit Stock Sentiment Analyzer")
+    st.title("Stock Sentiment Analyzer")
     
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
     
@@ -69,7 +69,6 @@ def main():
             
             with st.spinner("Analyzing sentiment..."):
                 texts = symbol_df['body'].tolist()
-                print(texts)
                 sentiment_df = analyze_sentiment(texts)
                 symbol_df['sentiment'] = sentiment_df['sentiment']
                 symbol_df['sentiment_score'] = sentiment_df['sentiment'].map({'positive': 1, 'neutral': 0, 'negative': -1})
