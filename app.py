@@ -3,8 +3,8 @@ import pandas as pd
 import plotly.express as px
 from models.transformer_model import SentimentAnalyzer
 from scripts import fetch_reddit_data, process_reddit_data #,DatabaseManager
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
 
 #@st.cache_resource
 #def get_db_manager():
@@ -28,15 +28,10 @@ def analyze_sentiment(texts):
     sentiments = []
     scores = []
     for text in texts:
-        try:
-            label, score = sentiment_analyzer.predict(text)
-            sentiments.append(label)
-            scores.append(score)
-        except Exception as e:
-            print(f"Error analyzing text: {text[:50]}... Error: {str(e)}")
-            sentiments.append("ERROR")
-            scores.append(0.0)
-    
+        label, score = sentiment_analyzer.predict(text)
+        sentiments.append(label)
+        scores.append(score)
+
     return pd.DataFrame({'text': texts, 'sentiment': sentiments, 'score': scores})
 
 def plot_sentiment_distribution(sentiment_df):
@@ -52,20 +47,45 @@ def plot_sentiment_over_time(df):
 def main():
     st.title("Stock Sentiment Analyzer")
     
+    # Add sidebar for subreddit selection
+    st.sidebar.header("Settings")
+    subreddit_options = ["stocks", "wallstreetbets", "investing"]
+    selected_subreddits = st.sidebar.multiselect(
+        "Choose subreddit(s) to analyze:",
+        options=subreddit_options,
+        default=["stocks", "wallstreetbets"]
+    )
+    
+        
+    # Date range selection
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)  # Default to last 30 days
+    
+    start_date = st.sidebar.date_input("Start date", start_date)
+    end_date = st.sidebar.date_input("End date", end_date)
+    
+    if start_date > end_date:
+        st.sidebar.error("Error: End date must be after start date.")
+        return
+    
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
     
-    if stock_symbol:
+    if stock_symbol and selected_subreddits:
         with st.spinner("Fetching data..."):
-            stocks_df = pd.DataFrame(fetch_reddit_data("stocks"))
-            wallstreetbets_df = pd.DataFrame(fetch_reddit_data("wallstreetbets"))
-            df = pd.concat([stocks_df, wallstreetbets_df])
+            # Fetch data from selected subreddits
+            df = pd.DataFrame()
+            for subreddit in selected_subreddits:
+                subreddit_df = pd.DataFrame(fetch_reddit_data(subreddit, start_date, end_date))
+                subreddit_df['source'] = subreddit  # Add source column
+                df = pd.concat([df, subreddit_df])
+            
             symbol_df = get_stock_symbol(stock_symbol, df)
         
         if symbol_df.empty:
-            st.warning(f"No comments found for {stock_symbol}.")
+            st.warning(f"No comments found for {stock_symbol} in the selected subreddits.")
         else:
             st.subheader("Reddit Comments")
-            st.dataframe(symbol_df[[ 'body', 'created_utc']])
+            st.dataframe(symbol_df.head(5)[['body', 'created_utc', 'source']])
             
             with st.spinner("Analyzing sentiment..."):
                 texts = symbol_df['body'].tolist()
@@ -75,26 +95,17 @@ def main():
             
             st.subheader("Sentiment Analysis Results")
             col1, col2 = st.columns(2)
+        
+            total_comments = len(sentiment_df)
+            positive_ratio = (symbol_df['sentiment'] == 'positive').mean()
+            negative_ratio = (symbol_df['sentiment'] == 'negative').mean()
+            neutral_ratio = (symbol_df['sentiment'] == 'neutral').mean()
             
             with col1:
                 st.plotly_chart(plot_sentiment_distribution(sentiment_df))
             
             with col2:
                 st.plotly_chart(plot_sentiment_over_time(symbol_df))
-            
-            st.subheader("Key Statistics")
-            total_comments = len(sentiment_df)
-            positive_ratio = (symbol_df['sentiment'] == 'positive').mean()
-            negative_ratio = (symbol_df['sentiment'] == 'negative').mean()
-            neutral_ratio = (symbol_df['sentiment'] == 'neutral').mean()
-            
-            st.write(f"Total comments analyzed: {total_comments}")
-            st.write(f"Positive sentiment: {positive_ratio:.2%}")
-            st.write(f"Negative sentiment: {negative_ratio:.2%}")
-            st.write(f"Neutral sentiment: {neutral_ratio:.2%}")
-            
-            st.subheader("Most Recent Comments")
-            st.dataframe(symbol_df.sort_values('created_utc', ascending=False).head(5)[[ 'body', 'sentiment', 'created_utc']])
 
 if __name__ == "__main__":
     main()
