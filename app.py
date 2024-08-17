@@ -2,19 +2,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from models.transformer_model import SentimentAnalyzer
-from scripts import fetch_reddit_data, process_reddit_data, DatabaseManager
+from scripts import fetch_reddit_data, process_reddit_data #,DatabaseManager
 from datetime import datetime, timedelta
 import re
 
-@st.cache_resource
-def get_db_manager():
-    return DatabaseManager()
+#@st.cache_resource
+#def get_db_manager():
+#    return DatabaseManager()
 
 @st.cache_resource
 def get_sentiment_analyzer():
     return SentimentAnalyzer()
 
-db_manager = get_db_manager()
+#db_manager = get_db_manager()
 sentiment_analyzer = get_sentiment_analyzer()
 
 def get_stock_symbol(stock_symbol, df):
