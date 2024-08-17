@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from models.transformer_model import SentimentAnalyzer
-from scripts import fetch_reddit_data, process_reddit_data #,DatabaseManager
+from scripts import fetch_reddit_data, process_reddit_data ,DatabaseManager
 import re
 from datetime import datetime, timedelta
 
 #@st.cache_resource
-#def get_db_manager():
-#    return DatabaseManager()
+def get_db_manager():
+    return DatabaseManager()
 
 @st.cache_resource
 def get_sentiment_analyzer():

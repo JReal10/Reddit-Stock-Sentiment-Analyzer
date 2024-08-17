@@ -15,27 +15,39 @@ class DatabaseManager:
             port=DB_PORT
         )
 
-    def save_data(self, data):
+    def insert_data(self, data):
         """
-        Saves processed data to the PostgreSQL database.
+        Inserts raw data from the Reddit API into the PostgreSQL database.
         
         Args:
-        data (list): List of dictionaries containing processed Reddit post data.
+        data (list): List of dictionaries containing raw Reddit post data.
         """
         conn = self.connection_pool.getconn()
         try:
             with conn.cursor() as cur:
-                # Create a list of tuples from the data
-                values = [(d['body']) for d in data]
-                
-                # Generate the SQL query
+                # Assuming 'reddit_comments' table exists with appropriate columns
                 insert_query = sql.SQL("""
-                INSERT INTO reddit_comments (body)
-                VALUES %s
+                    INSERT INTO reddit_comments 
+                    (id, author, body, created_utc, score, subreddit, permalink)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """)
                 
+                # Prepare the values to be inserted
+                values = [
+                    (
+                        item['id'],
+                        item['author'],
+                        item['body'],
+                        item['created_utc'],
+                        item['score'],
+                        item['subreddit'],
+                        item['permalink']
+                    )
+                    for item in data
+                ]
+                
                 # Execute the query with the list of tuples as the parameter
-                cur.execute(insert_query, (values,))
+                cur.executemany(insert_query, values)
                 
                 # Commit the changes to the database
                 conn.commit()
