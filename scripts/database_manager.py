@@ -1,4 +1,5 @@
 # scripts/database_manager.py
+from datetime import datetime, timedelta
 import pandas as pd
 import psycopg2
 from psycopg2 import pool, sql
@@ -17,7 +18,8 @@ class DatabaseManager:
 
     def insert_data(self, data):
         """
-        Inserts raw data from the Reddit API into the PostgreSQL database.
+        Inserts raw data from the Reddit API into the PostgreSQL database,
+        avoiding duplicates.
         
         Args:
         data (list): List of dictionaries containing raw Reddit post data.
@@ -28,20 +30,19 @@ class DatabaseManager:
                 # Assuming 'reddit_comments' table exists with appropriate columns
                 insert_query = sql.SQL("""
                     INSERT INTO reddit_comments 
-                    (id, author, body, created_utc, score, subreddit, permalink)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    (id, body, created_utc, score, post_url)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
                 """)
                 
                 # Prepare the values to be inserted
                 values = [
                     (
                         item['id'],
-                        item['author'],
                         item['body'],
                         item['created_utc'],
                         item['score'],
-                        item['subreddit'],
-                        item['permalink']
+                        item['post_url'],
                     )
                     for item in data
                 ]
@@ -62,20 +63,26 @@ class DatabaseManager:
         """
         Get processed Data from the database.
         
-        Args:
-        data (list): List of dictionaries containing processed Reddit post data.
+        Returns:
+        pandas.DataFrame: DataFrame containing processed Reddit post data with original column names.
         """
         conn = self.connection_pool.getconn()
         try:
             with conn.cursor() as cur:
-                 # Read df from the existing table in the database
+                # Read data from the existing table in the database
                 read_query = sql.SQL("""
                 SELECT * FROM reddit_comments
                 """)
                 cur.execute(read_query)
+                
+                # Fetch the column names
+                column_names = [desc[0] for desc in cur.description]
+                
+                # Fetch all rows
                 result = cur.fetchall()
-                # Convert the result to a pandas DataFrame
-                df = pd.DataFrame(result)
+                
+                # Convert the result to a pandas DataFrame with column names
+                df = pd.DataFrame(result, columns=column_names)
                 
                 return df
             
@@ -85,16 +92,24 @@ class DatabaseManager:
         
         finally:
             self.connection_pool.putconn(conn)
+
             
     
     def delete_data(self):
         """
-        Delete all data from the database.
+        Delete data from the database that is older than 30 days.
         """
         conn = self.connection_pool.getconn()
         try:
             with conn.cursor() as cur:
-                cur.execute("""DELETE FROM reddit_comments""")
+                thirty_days_ago = datetime.now() - timedelta(days=30)
+                delete_query = sql.SQL("""
+                    DELETE FROM reddit_comments
+                    WHERE created_utc < %s
+                """)
+                cur.execute(delete_query, (thirty_days_ago,))
                 conn.commit()
+        except psycopg2.Error as e:
+            print(f"Database error: {e}")
         finally:
             self.connection_pool.putconn(conn)

@@ -1,36 +1,25 @@
 # utils/helpers.py
 
 import re
-from datetime import datetime
+import pandas as pd
+import plotly.express as px
 
-def clean_text(text):
-    """Remove special characters and extra whitespace from text."""
-    return re.sub(r'[^\w\s]', '', text).strip()
+def get_stock_symbol(stock_symbol, df):
+    symbol_pattern = r'\b' + re.escape(stock_symbol) + r'\b'
+    symbol_df = df[df['body'].str.contains(symbol_pattern, case=False, regex=True)]
+    return symbol_df.reset_index(drop=True)
 
-def convert_unix_time(unix_time):
-    """Convert Unix timestamp to human-readable date."""
-    return datetime.fromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S')
+def process_dataframe(df, stock_symbol):
+    symbol_df = get_stock_symbol(stock_symbol, df)
+    if not symbol_df.empty:
+        symbol_df['created_utc'] = pd.to_datetime(symbol_df['created_utc'], unit='s')
+        symbol_df = symbol_df.sort_values('created_utc')
+    return symbol_df
 
-def truncate_text(text, max_length=100):
-    """Truncate text to a specified length."""
-    return text[:max_length] + '...' if len(text) > max_length else text
+def plot_sentiment_distribution(sentiment_df):
+    return px.pie(sentiment_df, names='sentiment', title='Sentiment Distribution')
 
-def safe_divide(numerator, denominator):
-    """Perform division, returning 0 if denominator is 0."""
-    return numerator / denominator if denominator != 0 else 0
+def plot_sentiment_over_time(df):
+    return px.scatter(df, x='created_utc', y='sentiment_score', color='sentiment', title='Sentiment Over Time')
 
-def format_number(number):
-    """Format large numbers with K, M, B suffixes."""
-    if number >= 1_000_000_000:
-        return f"{number / 1_000_000_000:.1f}B"
-    elif number >= 1_000_000:
-        return f"{number / 1_000_000:.1f}M"
-    elif number >= 1_000:
-        return f"{number / 1_000:.1f}K"
-    return str(number)
 
-# You might also include more complex utilities here, like:
-# - Custom exceptions
-# - Decorators
-# - Data validation functions
-# - File handling utilities
