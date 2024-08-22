@@ -47,7 +47,7 @@ def fetch_reddit_data(subreddit, start_date=None, end_date=None):
         # Check if the post is within the specified date range
         if start_date <= post_date <= end_date:
             if post.num_comments > 0:
-                post.comments.replace_more(limit=10)
+                post.comments.replace_more(limit=5)
                 for comment in post.comments.list():
                     comment_date = datetime.fromtimestamp(comment.created_utc)
                     # Check if the comment is within the specified date range

@@ -22,4 +22,32 @@ def plot_sentiment_distribution(sentiment_df):
 def plot_sentiment_over_time(df):
     return px.scatter(df, x='created_utc', y='sentiment_score', color='sentiment', title='Sentiment Over Time')
 
+def transform_data(df, max_words=100):
+    transformed_data = []
+    
+    for comment in df['body']:
+        # Skip deleted or removed comments
+        if comment.lower() in ["[deleted]", "[removed]"]:
+            continue
+        
+        # Remove URLs
+        comment = re.sub(r'http\S+', '', comment)
+        
+        # Remove special characters and numbers
+        comment = re.sub(r'[^a-zA-Z\s]', '', comment)
+        
+        # Convert to lowercase
+        comment = comment.lower()
+        
+        # Remove extra whitespace
+        comment = ' '.join(comment.split())
+        
+        # Skip comments that are too short (potential spam) or too long
+        word_count = len(comment.split())
+        if word_count < 3 or word_count > max_words:
+            continue
+        
+        transformed_data.append(comment)
+    
+    return pd.DataFrame(transformed_data)
 
