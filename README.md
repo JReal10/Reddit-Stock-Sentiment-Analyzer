@@ -72,18 +72,6 @@ The project is organized as follows:
 └── .gitignore
 ```
 
-## Results and Evaluation
-The Reddit Stock Sentiment Analyzer provides the following key insights:
-
-Sentiment distribution of the Reddit comments for a given stock
-Sentiment score trends over time
-Statistics on the positive, negative, and neutral sentiment ratio
-
-These results are displayed in the Streamlit-based user interface, allowing users to quickly assess the overall market sentiment for a stock of their choice.
-
-<img width="960" alt="Screenshot 2024-08-08 104513" src="https://github.com/user-attachments/assets/0c61671f-bf6a-4798-8507-eacb48c5ec97">
-<img width="960" alt="Screenshot 2024-08-08 104530" src="https://github.com/user-attachments/assets/0b6f1eff-e097-4fe5-9a8b-86350aee02b1">
-
 ## Future Work
 Future improvements to the project may include:
 
