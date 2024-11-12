@@ -88,7 +88,6 @@ These results are displayed in the Streamlit-based user interface, allowing user
 Future improvements to the project may include:
 
 Integrating additional data sources (e.g., news articles, financial reports) for a more comprehensive sentiment analysis
-Developing more advanced sentiment analysis models using state-of-the-art natural language processing techniques
 Implementing a more user-friendly interface with interactive visualizations and filtering options
 
 ## Acknowledgments/References
