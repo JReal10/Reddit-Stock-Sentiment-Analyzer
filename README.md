@@ -9,6 +9,8 @@
 
 > A Streamlit-based application that analyzes the sentiment of Reddit comments related to a given stock.
 
+**Live App:** [Stock Sentiment Analyzer Using Reddit Data](https://londonborough.streamlit.app/)
+
 ## Project Overview
 
 The Reddit Stock Sentiment Analyzer project aims to provide a comprehensive analysis of the sentiment surrounding a specific stock based on comments from the Reddit community. By leveraging natural language processing techniques, this application extracts and visualizes the sentiment of Reddit discussions, allowing users to gain insights into the overall market sentiment for a particular stock.
