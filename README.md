@@ -1,4 +1,4 @@
-# Reddit Stock Sentiment Analyzer
+# Stock Sentiment Analyzer Using Reddit Data
 
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/JReal10/Reddit-Stock-Sentiment-Analyzer?include_prereleases)
 ![GitHub last commit](https://img.shields.io/github/last-commit/JReal10/Reddit-Stock-Sentiment-Analyzer)
