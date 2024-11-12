@@ -2,19 +2,21 @@
 
 import praw
 from .config import REDDIT_CLIENT_ID, REDDIT_SECRET_KEY, REDDIT_USER_NAME
-from datetime import datetime, timedelta, date
+from datetime import datetime
 
-def fetch_reddit_data(subreddit, start_date=None, end_date=None):
+def fetch_reddit_data(subreddit, comment_score_threshold=10, user_karma_threshold=1000):
     """
-    Fetches data from a specified subreddit using the Reddit API within a given date range.
+    Fetches data from a specified subreddit using the Reddit API for the last 30 days.
+    Only includes comments with a score above `comment_score_threshold` and posted by users
+    with karma above `user_karma_threshold`.
     
     Args:
     subreddit (str): Name of the subreddit to fetch data from.
-    start_date (date or datetime): The start date for fetching data (inclusive).
-    end_date (date or datetime): The end date for fetching data (inclusive).
+    comment_score_threshold (int): Minimum score a comment must have to be included.
+    user_karma_threshold (int): Minimum karma the user must have to be included.
 
     Returns:
-    list: A list of dictionaries containing post data.
+    list: A list of dictionaries containing post and comment data.
     """
     reddit = praw.Reddit(
         client_id=REDDIT_CLIENT_ID,
@@ -24,43 +26,24 @@ def fetch_reddit_data(subreddit, start_date=None, end_date=None):
     
     subreddit = reddit.subreddit(subreddit)
     posts = []
-    
-    # If no dates are provided, default to the last week
-    if not start_date:
-        start_date = datetime.now().date() - timedelta(days=7)
-    if not end_date:
-        end_date = datetime.now().date()
-    
-    # Convert date to datetime if necessary
-    if isinstance(start_date, date):
-        start_date = datetime.combine(start_date, datetime.min.time())
-    if isinstance(end_date, date):
-        end_date = datetime.combine(end_date, datetime.max.time())
-    
-    # Convert to UTC timestamp for Reddit API
-    start_timestamp = int(start_date.timestamp())
-    end_timestamp = int(end_date.timestamp())
-    
-    for post in subreddit.search('daily discussion', sort='new', time_filter='all'):
-        post_date = datetime.fromtimestamp(post.created_utc)
+
+    # Use 'month' time filter to get posts from approximately the last 30 days
+    for post in subreddit.search('daily discussion', sort='new', time_filter='month'):
         
-        # Check if the post is within the specified date range
-        if start_date <= post_date <= end_date:
-            if post.num_comments > 0:
-                post.comments.replace_more(limit=5)
-                for comment in post.comments.list():
-                    comment_date = datetime.fromtimestamp(comment.created_utc)
-                    # Check if the comment is within the specified date range
-                    if start_date <= comment_date <= end_date:
-                        posts.append({
-                            'id': post.id + '_' + comment.id,
-                            'body': comment.body,
-                            'created_utc': comment_date,
-                            'score': comment.score,
-                            'post_url': post.url,
-                        })
-        elif post_date < start_date:
-            # Stop searching if we've gone past the start date
-            break
-    
+        if post.num_comments > 0:
+            post.comments.replace_more(limit=0)
+            
+            for comment in post.comments.list():
+                comment_date = datetime.fromtimestamp(comment.created_utc)
+                
+                # Check if the comment score and user karma meet the thresholds
+                if comment.score >= comment_score_threshold:
+                    # Append the comment data if it meets the criteria
+                    posts.append({
+                        'id': post.id + '_' + comment.id,
+                        'body': comment.body,
+                        'created_utc': comment_date,
+                        'score': comment.score,
+                    })
+
     return posts

@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 from models.transformer_model import SentimentAnalyzer
+from utils.helpers import plot_sentiment_distribution, plot_sentiment_over_time, filter_comments_by_symbol
 from scripts import fetch_reddit_data
-import re
-from datetime import datetime, timedelta
 
 # Caching the sentiment analyzer model for reusability
 @st.cache_resource
@@ -14,10 +12,9 @@ def get_sentiment_analyzer():
 # Initialize the sentiment analyzer
 sentiment_analyzer = get_sentiment_analyzer()
 
-# Helper function to filter comments by stock symbol
-def filter_comments_by_symbol(stock_symbol, df):
-    symbol_pattern = r'\b' + re.escape(stock_symbol) + r'\b'
-    return df[df['body'].str.contains(symbol_pattern, case=False, regex=True)].reset_index(drop=True)
+@st.cache_data
+def reddit_data_to_dataframe(subreddit):
+    return pd.DataFrame(fetch_reddit_data(subreddit))
 
 # Perform sentiment analysis on a list of texts
 def analyze_sentiment(texts):
@@ -25,54 +22,27 @@ def analyze_sentiment(texts):
     sentiments, scores = zip(*results)
     return pd.DataFrame({'text': texts, 'sentiment': sentiments, 'score': scores})
 
-# Plot the distribution of sentiments
-def plot_sentiment_distribution(sentiment_df):
-    return px.pie(sentiment_df, names='sentiment', title='Sentiment Distribution')
-
-# Plot the sentiment score trend over time
-def plot_sentiment_over_time(df):
-    df['created_utc'] = pd.to_datetime(df['created_utc'], unit='s')
-    df = df.sort_values('created_utc')
-    return px.line(df, x='created_utc', y='sentiment_score', title='Sentiment Over Time')
-
 # Main Streamlit app function
 def main():
     st.title("Stock Sentiment Analyzer")
-
-    # Sidebar for settings
-    st.sidebar.header("Settings")
-    subreddit_options = ["stocks", "stockmarket"]
-    selected_subreddits = st.sidebar.multiselect("Choose subreddit(s) to analyze:", options=subreddit_options, default=["stocks", "stockmarket"])
-
-    # Date range selection
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=30)
-    start_date = st.sidebar.date_input("Start date", start_date)
-    end_date = st.sidebar.date_input("End date", end_date)
-
-    if start_date > end_date:
-        st.sidebar.error("Error: End date must be after start date.")
-        return
+    subreddit = "wallstreetbets"
 
     # Stock symbol input
     stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
 
-    if stock_symbol and selected_subreddits:
+    if stock_symbol and subreddit:
         with st.spinner("Fetching data..."):
             # Fetch and concatenate data from selected subreddits
-            df = pd.concat([
-                pd.DataFrame(fetch_reddit_data(subreddit, start_date, end_date)).assign(source=subreddit)
-                for subreddit in selected_subreddits
-            ], ignore_index=True)
-
+            df = reddit_data_to_dataframe(subreddit)
             # Filter comments by stock symbol
             symbol_df = filter_comments_by_symbol(stock_symbol, df)
+            st.write(f"Comment Analyzed{symbol_df.count()}")
 
         if symbol_df.empty:
-            st.warning(f"No comments found for {stock_symbol} in the selected subreddits.")
+            st.warning(f"Not enough data for {stock_symbol} in the selected subreddits.")
         else:
             st.subheader("Reddit Comments")
-            st.dataframe(symbol_df[['body', 'created_utc', 'source']].head(5))
+            st.dataframe(symbol_df.head(5))
 
             with st.spinner("Analyzing sentiment..."):
                 sentiment_df = analyze_sentiment(symbol_df['body'].tolist())
