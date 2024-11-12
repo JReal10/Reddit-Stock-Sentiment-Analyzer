@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 from models.transformer_model import SentimentAnalyzer
-from utils.helpers import plot_sentiment_distribution, plot_sentiment_over_time, filter_comments_by_symbol
+from utils.helpers import plot_sentiment_distribution, filter_comments_by_symbol
 from scripts import fetch_reddit_data
+import plotly.graph_objects as go
 
 # Caching the sentiment analyzer model for reusability
 @st.cache_resource
@@ -22,42 +23,49 @@ def analyze_sentiment(texts):
     sentiments, scores = zip(*results)
     return pd.DataFrame({'text': texts, 'sentiment': sentiments, 'score': scores})
 
+
 # Main Streamlit app function
 def main():
+    # Title and Introduction
     st.title("Stock Sentiment Analyzer")
+    st.markdown("Analyze Reddit sentiment on popular stocks from the [r/wallstreetbets](https://www.reddit.com/r/wallstreetbets/) subreddit.")
+
+    # Define default subreddit and get user input for stock symbol
     subreddit = "wallstreetbets"
+    stock_symbol = st.text_input("Enter Stock Symbol (e.g., MSFT):").upper()
 
-    # Stock symbol input
-    stock_symbol = st.text_input("Enter stock symbol (e.g., MSFT):").upper()
-
-    if stock_symbol and subreddit:
+    if stock_symbol:
         with st.spinner("Fetching data..."):
-            # Fetch and concatenate data from selected subreddits
             df = reddit_data_to_dataframe(subreddit)
-            # Filter comments by stock symbol
             symbol_df = filter_comments_by_symbol(stock_symbol, df)
-            st.write(f"Comment Analyzed{symbol_df.count()}")
+            total_comments = symbol_df.shape[0]
 
         if symbol_df.empty:
-            st.warning(f"Not enough data for {stock_symbol} in the selected subreddits.")
+            st.warning(f"No data found for {stock_symbol} in {subreddit}.")
         else:
-            st.subheader("Reddit Comments")
-            st.dataframe(symbol_df.head(5))
-
             with st.spinner("Analyzing sentiment..."):
                 sentiment_df = analyze_sentiment(symbol_df['body'].tolist())
-                symbol_df = pd.concat([symbol_df, sentiment_df[['sentiment', 'score']]], axis=1)
+                symbol_df = pd.concat([symbol_df, sentiment_df[['sentiment']]], axis=1)
                 symbol_df['sentiment_score'] = symbol_df['sentiment'].map({'positive': 1, 'neutral': 0, 'negative': -1})
 
-            # Sentiment Analysis Results
-            st.subheader("Sentiment Analysis Results")
-            col1, col2 = st.columns(2)
+            # Centered Sentiment Gauge Chart
+            st.subheader(f"Sentiment Distribution of {stock_symbol} Over a Month")
+            gauge_col1, gauge_col2, gauge_col3 = st.columns([1, 2, 1])  # Center gauge chart with blank columns
 
-            with col1:
-                st.plotly_chart(plot_sentiment_distribution(sentiment_df))
+            with gauge_col2:
+                st.plotly_chart(plot_sentiment_distribution(sentiment_df), use_container_width=True)
 
-            with col2:
-                st.plotly_chart(plot_sentiment_over_time(symbol_df))
+        # Display Top Comments
+        st.subheader("Top Reddit Comments")
+
+        # Iterate through the top 5 comments and display each with sentiment
+        for i, row in symbol_df[['body', 'sentiment', 'created_utc']].head(5).iterrows():
+            st.text_area(label=f"User {i + 1}", value=row['body'], height=100, key=f"comment_{i}")
+            st.markdown(f"*Sentiment:* {row['sentiment'].capitalize()}")
+            st.markdown(f"*Commented at:* {row['created_utc']}")
+            st.write("---")  # Adds 
 
 if __name__ == "__main__":
     main()
+
+

@@ -4,7 +4,7 @@ import torch
 class SentimentAnalyzer:
     def __init__(self):
         device = 0 if torch.cuda.is_available() else -1
-        self.model_name = "yiyanghkust/finbert-tone"
+        self.model_name = "cardiffnlp/twitter-roberta-base-sentiment"
         self.model = pipeline('sentiment-analysis', model=self.model_name, device=device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.max_length = 512  # RoBERTa typically has a max length of 512 tokens
