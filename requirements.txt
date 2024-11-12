@@ -1,0 +1,42 @@
+# Core packages for your NLP and data science application
+transformers==4.46.2
+tokenizers==0.20.3
+torch==2.5.1
+pandas==2.2.3
+numpy==2.1.3
+scikit-learn==1.5.2
+scipy==1.14.1
+tqdm==4.67.0
+requests==2.32.3
+huggingface_hub==0.26.2
+python-dotenv==1.0.1  # Only if environment variable loading is needed
+praw==7.8.1  # If Reddit data is used
+streamlit==1.40.1
+aiohttp==3.10.10  # For async HTTP requests, if used
+filelock==3.16.1
+
+# Visualization
+plotly==5.24.1  # For interactive plots, if needed
+matplotlib==3.7.1  # If additional plotting is required
+seaborn==0.12.2  # Optional, if using advanced plotting
+
+# Text processing and regex utilities
+pyyaml==6.0.2
+regex==2024.11.6
+
+# Additional libraries used in data pipelines or transformations
+pyarrow==18.0.0  # Only if working with Apache Arrow data
+pillow==11.0.0   # If image processing is required
+altair==5.4.1    # Alternative visualization library, if applicable
+
+# Optional utilities for working with structured JSON or other data formats
+jsonschema==4.23.0
+sqlalchemy==2.0.36  # Database connection, if applicable
+
+# Optional advanced dependency management (remove if unused)
+tenacity==9.0.0  # Retry library, useful for robust data pulling
+
+# Remove system-specific libraries and lower-level dependencies handled by pip/Conda
+
+# Praw dependencies
+prawcore==2.4.0
