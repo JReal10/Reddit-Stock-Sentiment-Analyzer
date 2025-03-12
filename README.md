@@ -10,6 +10,9 @@
 > A Streamlit-based application that analyzes the sentiment of Reddit comments related to a given stock.
 
 **Live App:** [Stock Sentiment Analyzer Using Reddit Data](https://redditsentiments.streamlit.app/)
+## Demo Preview
+
+[▶️ Watch Demo on YouTube](https://youtu.be/61AYNse7rF4)
 
 ## Project Overview
 
